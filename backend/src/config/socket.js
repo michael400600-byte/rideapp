@@ -1,0 +1,5 @@
+const { Server } = require('socket.io');
+let io;
+const initSocket = (server) => { io = new Server(server, { cors: { origin: '*' } }); io.on('connection', (s) => { s.on('driver:online', d => s.join('drivers')); s.on('ride:request', d => { s.join(`ride_${d.rideId}`); io.to('drivers').emit('ride:new_request', d); }); s.on('ride:accept', d => { s.join(`ride_${d.rideId}`); io.to(`ride_${d.rideId}`).emit('ride:accepted', d); }); s.on('ride:counter_offer', d => io.to(`ride_${d.rideId}`).emit('ride:counter_offer_received', d)); s.on('driver:location_update', d => { if(d.rideId) io.to(`ride_${d.rideId}`).emit('ride:driver_location', d); }); s.on('ride:start', d => io.to(`ride_${d.rideId}`).emit('ride:started', d)); s.on('ride:complete', d => io.to(`ride_${d.rideId}`).emit('ride:completed', d)); s.on('ride:cancel', d => io.to(`ride_${d.rideId}`).emit('ride:cancelled', d)); s.on('chat:message', d => io.to(`ride_${d.rideId}`).emit('chat:new_message', d)); }); };
+const getIO = () => io;
+module.exports = { initSocket, getIO };

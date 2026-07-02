@@ -1,0 +1,13 @@
+const express = require('express');
+const router = express.Router();
+const rc = require('../controllers/rideController');
+const { auth } = require('../middleware/auth');
+router.use(auth);
+router.post('/', rc.requestRide);
+router.get('/history', rc.getHistory);
+router.put('/:rideId/accept', rc.acceptRide);
+router.put('/:rideId/start', rc.startRide);
+router.put('/:rideId/complete', rc.completeRide);
+router.put('/:rideId/cancel', rc.cancelRide);
+router.post('/:rideId/rate', rc.rateRide);
+module.exports = router;
