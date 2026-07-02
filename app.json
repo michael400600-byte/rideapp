@@ -31,6 +31,6 @@
         }
       }
     },
-    "plugins": ["expo-location", "expo-notifications"]
+    "plugins": ["expo-location"]
   }
 }
