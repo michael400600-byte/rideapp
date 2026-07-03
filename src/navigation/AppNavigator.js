@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -18,8 +18,21 @@ import { COLORS } from '../utils/theme';
 
 const Stack = createNativeStackNavigator();
 
+const AppTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: COLORS.primary,
+    background: COLORS.background,
+    card: COLORS.surface,
+    text: COLORS.textPrimary,
+    border: COLORS.border,
+    notification: COLORS.error,
+  },
+};
+
 const AppNavigator = () => (
-  <NavigationContainer theme={{ dark: true, colors: { primary: COLORS.primary, background: COLORS.background, card: COLORS.surface, text: COLORS.textPrimary, border: COLORS.border, notification: COLORS.error } }}>
+  <NavigationContainer theme={AppTheme}>
     <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background }, animation: 'slide_from_right' }}>
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
