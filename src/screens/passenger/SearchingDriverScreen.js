@@ -1,67 +1,65 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, SPACING, BORDER_RADIUS, SHADOWS } from '../../utils/theme';
 
-export default function SearchingDriverScreen({ navigation }) {
+export default function SearchingDriverScreen({ navigation, route }) {
+  const price = route?.params?.price || 85;
+  const destination = route?.params?.destination || { name: 'Aeropuerto CDMX' };
   const pulse1 = useRef(new Animated.Value(0)).current;
   const pulse2 = useRef(new Animated.Value(0)).current;
   const rotate = useRef(new Animated.Value(0)).current;
   const [timer, setTimer] = useState(0);
+  const [found, setFound] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setTimer(t => t + 1), 1000);
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-      navigation.replace('RideInProgress');
-    }, 5000);
+    const foundTimeout = setTimeout(() => setFound(true), 4000);
+    const navTimeout = setTimeout(() => navigation.replace('RideInProgress', { price, destination }), 5500);
 
-    Animated.loop(Animated.timing(rotate, { toValue: 1, duration: 3000, easing: Easing.linear, useNativeDriver: true })).start();
-    Animated.loop(Animated.sequence([
-      Animated.timing(pulse1, { toValue: 1, duration: 1500, useNativeDriver: true }),
-      Animated.timing(pulse1, { toValue: 0, duration: 1500, useNativeDriver: true }),
-    ])).start();
-    Animated.loop(Animated.sequence([
-      Animated.delay(500),
-      Animated.timing(pulse2, { toValue: 1, duration: 1500, useNativeDriver: true }),
-      Animated.timing(pulse2, { toValue: 0, duration: 1500, useNativeDriver: true }),
-    ])).start();
+    Animated.loop(Animated.timing(rotate, { toValue: 1, duration: 2500, easing: Easing.linear, useNativeDriver: true })).start();
+    const mkPulse = (v, delay) => Animated.loop(Animated.sequence([Animated.delay(delay), Animated.timing(v, { toValue: 1, duration: 1800, useNativeDriver: true }), Animated.timing(v, { toValue: 0, duration: 0, useNativeDriver: true })]));
+    mkPulse(pulse1, 0).start();
+    mkPulse(pulse2, 900).start();
 
-    return () => { clearInterval(interval); clearTimeout(timeout); };
+    return () => { clearInterval(interval); clearTimeout(foundTimeout); clearTimeout(navTimeout); };
   }, []);
 
   const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const scale1 = pulse1.interpolate({ inputRange: [0, 1], outputRange: [1, 1.6] });
-  const opacity1 = pulse1.interpolate({ inputRange: [0, 1], outputRange: [0.6, 0] });
-  const scale2 = pulse2.interpolate({ inputRange: [0, 1], outputRange: [1, 1.8] });
-  const opacity2 = pulse2.interpolate({ inputRange: [0, 1], outputRange: [0.4, 0] });
+  const mkStyle = (v) => ({ transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] }) }], opacity: v.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] }) });
 
   return (
     <View style={styles.container}>
+      <LinearGradient colors={['#0F2A5C', '#070B14']} style={styles.glow} />
+      <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
+        <Ionicons name="close" size={22} color={COLORS.textPrimary} />
+      </TouchableOpacity>
+
       <View style={styles.center}>
-        <Animated.View style={[styles.pulseCircle, { transform: [{ scale: scale1 }], opacity: opacity1 }]} />
-        <Animated.View style={[styles.pulseCircle, styles.pulse2, { transform: [{ scale: scale2 }], opacity: opacity2 }]} />
-        <Animated.View style={[styles.ring, { transform: [{ rotate: spin }] }]}>
-          <View style={styles.ringDot} />
-        </Animated.View>
-        <View style={styles.iconCircle}>
-          <Ionicons name="car-sport" size={36} color={COLORS.primary} />
-        </View>
+        <Animated.View style={[styles.pulse, mkStyle(pulse1)]} />
+        <Animated.View style={[styles.pulse, mkStyle(pulse2)]} />
+        {!found && <Animated.View style={[styles.ring, { transform: [{ rotate: spin }] }]}><View style={styles.ringDot} /></Animated.View>}
+        <LinearGradient colors={found ? COLORS.gradientAccent : COLORS.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.iconCircle}>
+          <Ionicons name={found ? 'checkmark' : 'car-sport'} size={40} color="#FFF" />
+        </LinearGradient>
       </View>
-      <Text style={styles.status}>Buscando conductor...</Text>
-      <Text style={styles.timer}>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</Text>
+
+      <Text style={styles.status}>{found ? '¡Conductor encontrado!' : 'Buscando conductor...'}</Text>
+      <Text style={styles.subtitle}>{found ? 'Preparando tu viaje' : 'Esto solo tomará unos segundos'}</Text>
+      {!found && <View style={styles.timerPill}><Text style={styles.timer}>{Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</Text></View>}
+
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
+          <View style={styles.infoIcon}><Ionicons name="location" size={16} color={COLORS.error} /></View>
           <Text style={styles.infoLabel}>Destino</Text>
-          <Text style={styles.infoValue}>Aeropuerto CDMX</Text>
+          <Text style={styles.infoValue} numberOfLines={1}>{destination.name}</Text>
         </View>
+        <View style={styles.infoDivider} />
         <View style={styles.infoRow}>
+          <View style={styles.infoIcon}><Ionicons name="cash" size={16} color={COLORS.accent} /></View>
           <Text style={styles.infoLabel}>Precio</Text>
-          <Text style={styles.infoValue}>$85 MXN</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Tipo</Text>
-          <Text style={styles.infoValue}>Económico</Text>
+          <Text style={[styles.infoValue, { color: COLORS.accent }]}>${price}</Text>
         </View>
       </View>
     </View>
@@ -69,17 +67,22 @@ export default function SearchingDriverScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center', padding: SPACING.xxl },
-  center: { width: 160, height: 160, justifyContent: 'center', alignItems: 'center', marginBottom: SPACING.xxxl },
-  pulseCircle: { position: 'absolute', width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: COLORS.primary },
-  pulse2: { width: 140, height: 140, borderRadius: 70 },
-  ring: { position: 'absolute', width: 130, height: 130, borderRadius: 65, borderWidth: 2, borderColor: 'transparent', borderTopColor: COLORS.primary },
-  ringDot: { position: 'absolute', top: -4, left: '50%', marginLeft: -4, width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.primary },
-  iconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', ...SHADOWS.medium },
-  status: { fontSize: FONTS.sizes.xl, fontWeight: FONTS.weights.bold, color: COLORS.textPrimary, marginBottom: SPACING.sm },
-  timer: { fontSize: FONTS.sizes.md, color: COLORS.textMuted, marginBottom: SPACING.xxxl },
-  infoCard: { width: '100%', backgroundColor: COLORS.surface, borderRadius: BORDER_RADIUS.lg, padding: SPACING.lg, ...SHADOWS.small },
-  infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SPACING.sm },
-  infoLabel: { fontSize: FONTS.sizes.md, color: COLORS.textMuted },
-  infoValue: { fontSize: FONTS.sizes.md, color: COLORS.textPrimary, fontWeight: FONTS.weights.medium },
+  container: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center', paddingHorizontal: SPACING.xxl },
+  glow: { position: 'absolute', top: 0, left: 0, right: 0, height: 400, opacity: 0.5 },
+  cancelBtn: { position: 'absolute', top: 54, right: SPACING.xl, width: 44, height: 44, borderRadius: BORDER_RADIUS.md, backgroundColor: COLORS.surface, justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  center: { width: 180, height: 180, justifyContent: 'center', alignItems: 'center', marginTop: 140, marginBottom: SPACING.section },
+  pulse: { position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: COLORS.primary },
+  ring: { position: 'absolute', width: 150, height: 150, borderRadius: 75, borderWidth: 3, borderColor: 'transparent', borderTopColor: COLORS.primary },
+  ringDot: { position: 'absolute', top: -5, left: '50%', marginLeft: -5, width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.primary },
+  iconCircle: { width: 96, height: 96, borderRadius: 48, justifyContent: 'center', alignItems: 'center', ...SHADOWS.glow },
+  status: { fontSize: FONTS.sizes.xxl, fontWeight: FONTS.weights.heavy, color: COLORS.textPrimary, textAlign: 'center' },
+  subtitle: { fontSize: FONTS.sizes.md, color: COLORS.textSecondary, marginTop: SPACING.sm },
+  timerPill: { backgroundColor: COLORS.surface, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.full, marginTop: SPACING.lg, borderWidth: 1, borderColor: COLORS.border },
+  timer: { color: COLORS.textSecondary, fontSize: FONTS.sizes.md, fontWeight: FONTS.weights.bold },
+  infoCard: { width: '100%', backgroundColor: COLORS.surface, borderRadius: BORDER_RADIUS.lg, padding: SPACING.lg, marginTop: SPACING.section, borderWidth: 1, borderColor: COLORS.border },
+  infoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: SPACING.sm },
+  infoIcon: { width: 32, height: 32, borderRadius: BORDER_RADIUS.sm, backgroundColor: COLORS.surfaceLight, justifyContent: 'center', alignItems: 'center' },
+  infoLabel: { color: COLORS.textMuted, fontSize: FONTS.sizes.sm, marginLeft: SPACING.md, flex: 1 },
+  infoValue: { color: COLORS.textPrimary, fontSize: FONTS.sizes.md, fontWeight: FONTS.weights.bold, maxWidth: '55%' },
+  infoDivider: { height: 1, backgroundColor: COLORS.border, marginVertical: SPACING.xs },
 });

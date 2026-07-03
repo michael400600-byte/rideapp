@@ -11,11 +11,11 @@ const Input = ({ label, placeholder, value, onChangeText, secureTextEntry = fals
     <View style={[styles.container, style]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <View style={[styles.inputContainer, focused && styles.focused, error && styles.errorBorder]}>
-        {icon && <Ionicons name={icon} size={20} color={focused ? COLORS.primary : COLORS.textSecondary} style={styles.icon} />}
+        {icon && <Ionicons name={icon} size={20} color={focused ? COLORS.primary : COLORS.textMuted} style={styles.icon} />}
         <TextInput style={styles.input} placeholder={placeholder} placeholderTextColor={COLORS.textMuted} value={value} onChangeText={onChangeText} secureTextEntry={secureTextEntry && !showPassword} keyboardType={keyboardType} autoCapitalize={autoCapitalize} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} />
         {secureTextEntry && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.textSecondary} />
+            <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.textMuted} />
           </TouchableOpacity>
         )}
       </View>
@@ -26,12 +26,12 @@ const Input = ({ label, placeholder, value, onChangeText, secureTextEntry = fals
 
 const styles = StyleSheet.create({
   container: { marginBottom: SPACING.lg },
-  label: { color: COLORS.textSecondary, fontSize: FONTS.sizes.sm, fontWeight: FONTS.weights.medium, marginBottom: SPACING.sm, marginLeft: SPACING.xs },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surfaceLight, borderRadius: BORDER_RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, paddingHorizontal: SPACING.lg, height: 54 },
-  focused: { borderColor: COLORS.primary, backgroundColor: COLORS.surface },
+  label: { color: COLORS.textSecondary, fontSize: FONTS.sizes.sm, fontWeight: FONTS.weights.semibold, marginBottom: SPACING.sm, marginLeft: SPACING.xs },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: BORDER_RADIUS.md, borderWidth: 1.5, borderColor: COLORS.border, paddingHorizontal: SPACING.lg, height: 56 },
+  focused: { borderColor: COLORS.primary, backgroundColor: COLORS.surfaceLight },
   errorBorder: { borderColor: COLORS.error },
   icon: { marginRight: SPACING.md },
-  input: { flex: 1, color: COLORS.textPrimary, fontSize: FONTS.sizes.lg },
+  input: { flex: 1, color: COLORS.textPrimary, fontSize: FONTS.sizes.md },
   errorText: { color: COLORS.error, fontSize: FONTS.sizes.xs, marginTop: SPACING.xs, marginLeft: SPACING.xs },
 });
 
